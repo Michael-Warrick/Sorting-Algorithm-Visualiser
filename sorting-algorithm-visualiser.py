@@ -1,13 +1,13 @@
 import platform
-
-from enum import Enum
 import time
 
 import numpy as np
 import scipy as sp
 
 import matplotlib.pyplot as plt
+import matplotlib.widgets as widgets
 from matplotlib.animation import FuncAnimation
+from enum import Enum
 
 os = platform.system()
 
@@ -35,7 +35,7 @@ plt.rcParams["interactive"] == True
 plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
 plt.rcParams["font.size"] = 16
 
-valueCount = 100
+valueCount = 50
 arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
 np.random.seed(0)
 np.random.shuffle(arr)
@@ -89,6 +89,9 @@ currentAlgorithm = ""
 def setSortType(sortName):
     global currentAlgorithm
     currentAlgorithm = sortName
+
+def selectAlgorithm(name):
+    print(f"{name}")
 
 ##################
 ### RADIX SORT ###
@@ -170,10 +173,11 @@ def insertionSort(array):
     setSortType("Insertion Sort")
 
 startTime = time.perf_counter()
-radixSort(arr)
+insertionSort(arr)
 endTime = time.perf_counter() - startTime
 
 fig, ax = plt.subplots()
+
 container = ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
 ax.set(xlabel = "Index", ylabel = "Value")
 ax.set_xlim([0, valueCount])
@@ -186,6 +190,11 @@ fig.patch.set_facecolor(figColour)
 
 accessCounter = ax.text(valueCount * 0.01, 1000, "", fontsize = 12)
 sortTime = ax.text(valueCount * 0.785, 1000, f"Array sorted in {endTime * 1E3:.1f} ms", fontsize = 12)
+
+# Button info is defined as: [left_padding, bottom_padding, width, height]
+ax_check = plt.axes([0.8, 0.9, 0.1, 0.075])
+button = widgets.Button(ax_check, "SORT !", color="#1f77b4", hovercolor="#a0c3e3")
+button.on_clicked(selectAlgorithm)
 
 def update(currentFrame):
     accessCounter.set_text(f"{currentFrame} accesses")
