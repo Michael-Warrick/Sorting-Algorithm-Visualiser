@@ -97,9 +97,9 @@ def radixSort(array):
     
     setSortType("Radix Sort")
 
-##################
-### RADIX SORT ###
-##################
+######################
+### INSERTION SORT ###
+######################
 
 def insertionSort(array):
     i = 1
