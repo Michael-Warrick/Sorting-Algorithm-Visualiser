@@ -7,6 +7,44 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+# Transparent Class to record every attribute of the state of the array
+class TrackedArray():
+    def __init__(self, arr):
+        self.arr = np.copy(arr)
+        self.reset()
+    
+    def reset(self):
+        self.indicies = [] # Checks index being R/W to
+        self.values = [] # Checks R/W value at a given index
+        self.access_type = [] # Defining access type (get or set)
+        self.full_copies = [] # Storing the entire array (better visualisation)
+
+    def track(self, key, access_type):
+        self.indices.append(key)
+        self.values.append(self.arr[key])
+        self.access_type.append(access_type)
+        self.full_copies.append(np.copy(self.arr))
+
+    # If an index is passed, function returns a tuple of the accessed index and
+    # access type and if no index is passed, function returns a list of tuples of
+    # how each element was accessed.
+    def getCurrentActivity(self, index = None):
+        if isinstance(index, type(None)):
+            return [(i, op) for (i, op) in zip(self.indicies, self.access_type)]
+        else:
+            return(self.indicies[index], self.access_type[index])
+
+
+    # Magic functions built into python to set/get element values and returning
+    # the array
+    def __getitem__(self, key):
+        self.track(key, "get")
+        return self.arr.__getitem__(key)
+
+    def __setitem__(self, key):
+        self.track(key, "get")
+        return self.arr.__setitem__(key)
+
 def suppress_qt_warnings():
     environ["QT_DEVICE_PIXEL_RATIO"] = "0"
     environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
