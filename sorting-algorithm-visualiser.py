@@ -1,3 +1,4 @@
+from enum import Enum
 from os import environ
 import time
 
@@ -7,6 +8,37 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+class Theme(Enum):
+    dark = 0
+    light = 1
+
+theme = Theme.dark
+# theme = Theme.light
+
+# Colour theme, [inside color, outside colour]
+
+if theme == Theme.dark:
+    figColour = "#1A1E23"
+    axisColour = "#121619"
+    textColour = "dark_background"
+
+if theme == Theme.light:
+    figColour = "#ffffff"
+    axisColour = "#ffffff"
+    textColour = "default"
+
+plt.style.use(textColour)
+plt.rcParams["interactive"] == True
+plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
+plt.rcParams["font.size"] = 16
+
+FPS = 60.0
+
+valueCount = 30
+arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
+np.random.seed(0)
+np.random.shuffle(arr)
+
 # Transparent Class to record every attribute of the state of the array
 class TrackedArray():
     def __init__(self, arr):
@@ -14,7 +46,7 @@ class TrackedArray():
         self.reset()
     
     def reset(self):
-        self.indicies = [] # Checks index being R/W to
+        self.indices = [] # Checks index being R/W to
         self.values = [] # Checks R/W value at a given index
         self.access_type = [] # Defining access type (get or set)
         self.full_copies = [] # Storing the entire array (better visualisation)
@@ -30,9 +62,9 @@ class TrackedArray():
     # how each element was accessed.
     def getCurrentActivity(self, index = None):
         if isinstance(index, type(None)):
-            return [(i, op) for (i, op) in zip(self.indicies, self.access_type)]
+            return [(i, op) for (i, op) in zip(self.indices, self.access_type)]
         else:
-            return(self.indicies[index], self.access_type[index])
+            return(self.indices[index], self.access_type[index])
 
 
     # Magic functions built into python to set/get element values and returning
@@ -41,38 +73,15 @@ class TrackedArray():
         self.track(key, "get")
         return self.arr.__getitem__(key)
 
-    def __setitem__(self, key):
-        self.track(key, "get")
-        return self.arr.__setitem__(key)
+    def __setitem__(self, key, value):
+        self.arr.__setitem__(key, value)
+        self.track(key, "set")
 
-def suppress_qt_warnings():
-    environ["QT_DEVICE_PIXEL_RATIO"] = "0"
-    environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-    environ["QT_SCREEN_SCALE_FACTORS"] = "1"
-    environ["QT_SCALE_FACTOR"] = "1"
+    def __len__(self):
+        return self.arr.__len__()
 
-if __name__ == "__main__":
-    suppress_qt_warnings()
-    
-    # Init QT etc...
 
-plt.rcParams['interactive'] == True
-plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
-plt.rcParams["font.size"] = 16
-
-# TO DO: Make a nice dark theme for the program...
-# plt.style.use('dark_background')
-
-valueCount = 50
-arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
-np.random.seed(0)
-np.random.shuffle(arr)
-
-fig, ax = plt.subplots()
-
-ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
-ax.set(xlabel = "Index", ylabel = "Value", title = "Unsorted Array")
-ax.set_xlim([0, valueCount])
+arr = TrackedArray(arr)
 
 currentAlgorithm = ""
 
@@ -102,7 +111,7 @@ def countingSort(array, exponent):
    
     # Change count[i] so that count[i] now contains true
     # position of digit in output array
-    for i in range(1,10):
+    for i in range(1, 10):
         count[i] += count[i - 1]
    
     # Output array creation
@@ -160,14 +169,30 @@ def insertionSort(array):
     setSortType("Insertion Sort")
 
 startTime = time.perf_counter()
-radixSort(arr)
+insertionSort(arr)
 endTime = time.perf_counter() - startTime
 
-print(f"Array sorted in {endTime * 1E3:.1f} ms")
+print(f"{currentAlgorithm}")
+print(f"sorted array in {endTime * 1E3:.1f} ms")
 
 fig, ax = plt.subplots()
-ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
-ax.set(xlabel = "Index", ylabel = "Value", title = f"{currentAlgorithm} - Sorted Array")
+container = ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
+ax.set(xlabel = "Index", ylabel = "Value", title = f"{currentAlgorithm}")
 ax.set_xlim([0, valueCount])
 
+
+ax.set_facecolor(axisColour)
+fig.patch.set_facecolor(figColour)
+
+def update(currentFrame):
+
+    for (rectangle, height) in zip(container.patches, arr.full_copies[currentFrame]):
+        rectangle.set_height(height)
+        rectangle.set_color("#1f77b4")
+
+    return (*container,)
+
+# Only redraws when something changes (blit) and the full_copies[] array stores
+# how many frames are needed.
+animation = FuncAnimation(fig, update, frames = range(len(arr.full_copies)), blit = True, interval = 1000.0/FPS, repeat = False)
 plt.show()
