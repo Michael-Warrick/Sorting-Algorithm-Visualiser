@@ -1,5 +1,6 @@
+import platform
+
 from enum import Enum
-from os import environ
 import time
 
 import numpy as np
@@ -7,6 +8,8 @@ import scipy as sp
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+
+os = platform.system()
 
 class Theme(Enum):
     dark = 0
@@ -24,7 +27,7 @@ if theme == Theme.dark:
 
 if theme == Theme.light:
     figColour = "#ffffff"
-    axisColour = "#ffffff"
+    axisColour = "#f6f6f6"
     textColour = "default"
 
 plt.style.use(textColour)
@@ -32,9 +35,7 @@ plt.rcParams["interactive"] == True
 plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
 plt.rcParams["font.size"] = 16
 
-FPS = 60.0
-
-valueCount = 30
+valueCount = 100
 arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
 np.random.seed(0)
 np.random.shuffle(arr)
@@ -169,30 +170,39 @@ def insertionSort(array):
     setSortType("Insertion Sort")
 
 startTime = time.perf_counter()
-insertionSort(arr)
+radixSort(arr)
 endTime = time.perf_counter() - startTime
-
-print(f"{currentAlgorithm}")
-print(f"sorted array in {endTime * 1E3:.1f} ms")
 
 fig, ax = plt.subplots()
 container = ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
-ax.set(xlabel = "Index", ylabel = "Value", title = f"{currentAlgorithm}")
+ax.set(xlabel = "Index", ylabel = "Value")
 ax.set_xlim([0, valueCount])
 
+plt.get_current_fig_manager().set_window_title(f"Index Alpha Version 0.0.1 - {os} 64-Bit")
+plt.title(currentAlgorithm, fontweight = "bold")
 
 ax.set_facecolor(axisColour)
 fig.patch.set_facecolor(figColour)
 
+accessCounter = ax.text(valueCount * 0.01, 1000, "", fontsize = 12)
+sortTime = ax.text(valueCount * 0.785, 1000, f"Array sorted in {endTime * 1E3:.1f} ms", fontsize = 12)
+
 def update(currentFrame):
+    accessCounter.set_text(f"{currentFrame} accesses")
 
     for (rectangle, height) in zip(container.patches, arr.full_copies[currentFrame]):
         rectangle.set_height(height)
         rectangle.set_color("#1f77b4")
 
-    return (*container,)
+    index, operation = arr.getCurrentActivity(currentFrame)
+    if operation == "get":
+        container.patches[index - 1].set_color("#50C878") # Green
+    elif operation == "set":
+        container.patches[index - 1].set_color("#FF2500") # Red
+
+    return (*container, accessCounter)
 
 # Only redraws when something changes (blit) and the full_copies[] array stores
 # how many frames are needed.
-animation = FuncAnimation(fig, update, frames = range(len(arr.full_copies)), blit = True, interval = 1000.0/FPS, repeat = False)
+animation = FuncAnimation(fig, update, frames = range(len(arr.full_copies)), blit = True, interval = 0, repeat = False)
 plt.show()
