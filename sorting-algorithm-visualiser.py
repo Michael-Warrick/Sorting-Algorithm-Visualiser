@@ -22,22 +22,25 @@ plt.rcParams['interactive'] == True
 plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
 plt.rcParams["font.size"] = 16
 
+# TO DO: Make a nice dark theme for the program...
+# plt.style.use('dark_background')
+
 valueCount = 50
 arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
 np.random.seed(0)
 np.random.shuffle(arr)
 
 fig, ax = plt.subplots()
+
 ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
-ax.set_title("Unsorted Array")
+ax.set(xlabel = "Index", ylabel = "Value", title = "Unsorted Array")
+ax.set_xlim([0, valueCount])
 
 currentAlgorithm = ""
 
 def setSortType(sortName):
     global currentAlgorithm
     currentAlgorithm = sortName
-
-startTime = time.perf_counter()
 
 ##################
 ### RADIX SORT ###
@@ -118,13 +121,15 @@ def insertionSort(array):
     
     setSortType("Insertion Sort")
 
+startTime = time.perf_counter()
 radixSort(arr)
-
 endTime = time.perf_counter() - startTime
+
 print(f"Array sorted in {endTime * 1E3:.1f} ms")
 
 fig, ax = plt.subplots()
 ax.bar(np.arange(0, len(arr), 1), arr, align = "edge", width = 0.8)
-ax.set_title(currentAlgorithm + " - Sorted Array")
+ax.set(xlabel = "Index", ylabel = "Value", title = f"{currentAlgorithm} - Sorted Array")
+ax.set_xlim([0, valueCount])
 
 plt.show()
