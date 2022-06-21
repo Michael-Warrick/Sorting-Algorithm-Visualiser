@@ -9,16 +9,22 @@ import matplotlib.widgets as widgets
 from matplotlib.animation import FuncAnimation
 from enum import Enum
 
+# Import desired algorithm from file in folder
+from algorithms.heapSort import HeapSort
+from algorithms.insertionSort import InsertionSort
+from algorithms.radixSort import RadixSort
+##############################################
+
 os = platform.system()
 
 class Theme(Enum):
     dark = 0
     light = 1
 
+# Set theme by commenting out the undesired theme
 theme = Theme.dark
 # theme = Theme.light
-
-# Colour theme, [inside color, outside colour]
+#################################################
 
 if theme == Theme.dark:
     figColour = "#1A1E23"
@@ -35,7 +41,8 @@ plt.rcParams["interactive"] == True
 plt.rcParams["figure.figsize"] = (12, 8) # Setting default figure size
 plt.rcParams["font.size"] = 16
 
-valueCount = 50
+# Creates an array of size(valueCount) of elements varying from 0-1000 in random order 
+valueCount = 100
 arr = np.round(np.linspace(0, 1000, valueCount), 0) # Rounding to ensure int values only
 np.random.seed(0)
 np.random.shuffle(arr)
@@ -81,9 +88,7 @@ class TrackedArray():
     def __len__(self):
         return self.arr.__len__()
 
-
 arr = TrackedArray(arr)
-
 currentAlgorithm = ""
 
 def setSortType(sortName):
@@ -93,87 +98,13 @@ def setSortType(sortName):
 def selectAlgorithm(name):
     print(f"{name}")
 
-##################
-### RADIX SORT ###
-##################
+# Select from the imported algorithm, the class name
+sorter = InsertionSort()
+setSortType(sorter.algorithmName)
 
-# Dependent function
-def countingSort(array, exponent):
-   
-    n = len(array)
-   
-    # The output array elements that will have sorted arr
-    output = [0] * (n)
-   
-    # initialize count array as 0
-    count = [0] * (10)
-   
-    # Store occurrences in count[]
-    for i in range(0, n):
-        index = (array[i] / exponent)
-        count[int((index) % 10)] += 1
-   
-    # Change count[i] so that count[i] now contains true
-    # position of digit in output array
-    for i in range(1, 10):
-        count[i] += count[i - 1]
-   
-    # Output array creation
-    i = n - 1
-    while i >= 0:
-        index = (array[i] / exponent)
-        output[ count[ int((index) % 10) ] - 1] = array[i]
-        count[int((index) % 10)] -= 1
-
-        i -= 1
-   
-    # Copying the output array to arr[],
-    # so that arr now contains sorted numbers
-    i = 0
-
-    for i in range(0, len(array)):
-        arr[i] = output[i]
- 
-# Main function
-def radixSort(array):
- 
-    # Find the maximum number to know number of digits
-    maxElement = max(array)
- 
-    # Do counting sort for every digit. Note that instead
-    # of passing digit number, exp is passed. exp is 10^i
-    # where i is current digit number
-    exponent = 1
-
-    while int(maxElement / exponent) > 0:
-        countingSort(array, exponent)
-        exponent *= 10
-    
-    setSortType("Radix Sort")
-
-######################
-### INSERTION SORT ###
-######################
-
-def insertionSort(array):
-    i = 1
-
-    while (i < len(array)):
-        j = i
-
-        while ((j > 0) and (array[j - 1] > array[j])):
-            temp = array[j - 1]
-            array[j - 1] = array[j]
-            array[j] = temp
-
-            j -= 1
-
-        i += 1
-    
-    setSortType("Insertion Sort")
-
+# After using the class name, call the main algorithm function.
 startTime = time.perf_counter()
-insertionSort(arr)
+sorter.insertionSort(arr)
 endTime = time.perf_counter() - startTime
 
 fig, ax = plt.subplots()
@@ -190,11 +121,6 @@ fig.patch.set_facecolor(figColour)
 
 accessCounter = ax.text(valueCount * 0.01, 1000, "", fontsize = 12)
 sortTime = ax.text(valueCount * 0.785, 1000, f"Array sorted in {endTime * 1E3:.1f} ms", fontsize = 12)
-
-# Button info is defined as: [left_padding, bottom_padding, width, height]
-ax_check = plt.axes([0.8, 0.9, 0.1, 0.075])
-button = widgets.Button(ax_check, "SORT !", color="#1f77b4", hovercolor="#a0c3e3")
-button.on_clicked(selectAlgorithm)
 
 def update(currentFrame):
     accessCounter.set_text(f"{currentFrame} accesses")
