@@ -2,7 +2,6 @@ import platform
 import time
 
 import numpy as np
-import scipy as sp
 
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
